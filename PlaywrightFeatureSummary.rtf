@@ -1,0 +1,47 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0\fnil\fcharset0 Arial;}}
+\viewkind4\uc1\pard\lang1033\b\fs24 Playwright Feature Summary\b0\par
+\par
+Project purpose: practice Playwright Java using local mock pages and a real browser scenario.\par
+\par
+\b Core topics covered:\b0\par
+\bullet Locators: page.locator, getByRole, getByText, getByTestId, chaining\par
+\bullet Actions: click, type, fill, selectOption, check, uncheck, press, hover\par
+\bullet Assertions: toBeVisible, toHaveText, toContainText, expect(locator)\par
+\bullet Waiting: waitForSelector, waitForLoadState, visibility waits\par
+\bullet Navigation: goto, reload, back, forward\par
+\bullet Frames and dialogs: iframe content and alert handling\par
+\bullet Network / API interception: mock requests and validate responses\par
+\bullet Browser contexts / multi-page: separate page and context examples\par
+\bullet Authentication / storageState: browser storage persistence\par
+\bullet Screenshots / videos / tracing: capture evidence and debug flows\par
+\bullet Page Object Model: selectors and actions separated from steps\par
+\par
+\b Feature structure:\b0\par
+\bullet BrowserSetupSteps.java: shared browser setup and page launch\par
+\bullet BasicPageSteps.java: title and page text checks\par
+\bullet LocatorSteps.java: locator-based validation\par
+\bullet ActionSteps.java: form and button interactions\par
+\bullet WaitingSteps.java: waits and expected visibility checks\par
+\bullet NavigationSteps.java: page transitions and reload behavior\par
+\bullet FramesAndDialogsSteps.java: modal and iframe examples\par
+\bullet NetworkApiSteps.java: request interception and mock validation\par
+\bullet BrowserContextSteps.java: multi-page examples\par
+\bullet AuthenticationSteps.java: storage-state reuse pattern\par
+\bullet ScreenshotTraceSteps.java: screenshots and traces\par
+\bullet WikipediaActionSteps.java: real browser scenario using Wikipedia\par
+\bullet PlaywrightContext.java: shared Playwright/browser/page state\par
+\par
+\b Mock pages used:\b0\par
+\bullet src/test/resources/pages/dummy-browser.html\par
+\bullet src/test/resources/pages/advanced-browser.html\par
+\par
+\b Real browser scenario:\b0\par
+\bullet Wikipedia search in headed browser mode for visual validation\par
+\par
+\b Notes:\b0\par
+\bullet The project is structured by topic and feature, not as a single monolithic flow.\par
+\bullet Local mock pages make tests stable and offline-friendly.\par
+\bullet Cucumber feature files under src/test/resources/features cover the scenarios.\par
+\par
+Prepared for the Playwright Java project.\par
+}\par

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Browser Playground</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 16px; max-width: 700px; }
+    button { margin: 8px 0; padding: 8px 12px; }
+    #api-result { margin-top: 12px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Advanced Browser Playground</h1>
+
+  <div class="card">
+    <h2>Frame</h2>
+    <iframe id="inner-frame" title="Inner frame" srcdoc="<html><body><p>Frame content ready</p></body></html>"></iframe>
+  </div>
+
+  <div class="card">
+    <h2>Dialogs</h2>
+    <button id="show-alert" type="button">Show alert</button>
+  </div>
+
+  <div class="card">
+    <h2>API mock</h2>
+    <button id="trigger-fetch" type="button">Load API data</button>
+    <div id="api-result">Waiting</div>
+  </div>
+
+  <script>
+    const result = document.getElementById('api-result');
+    const trigger = document.getElementById('trigger-fetch');
+    trigger.addEventListener('click', () => {
+      fetch('https://example.com/api/user')
+        .then(response => response.json())
+        .then(data => {
+          result.textContent = data.message || 'API response loaded';
+        })
+        .catch(() => {
+          result.textContent = 'API request failed';
+        });
+    });
+
+    document.getElementById('show-alert').addEventListener('click', () => {
+      alert('Hello from the dialog!');
+    });
+
+    try {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        result.textContent = 'Stored auth token: ' + token;
+      }
+    } catch (err) {
+      // ignore localStorage issues in some environments
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dummy Browser Playground</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    .row { margin-bottom: 16px; }
+    .hidden { display: none; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 16px; max-width: 700px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    .badge { background: #e6f4ff; color: #0b57d0; padding: 4px 8px; border-radius: 12px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1 data-testid="page-title">Dummy Browser Playground</h1>
+
+  <div class="card">
+    <div class="row">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" placeholder="Enter username" data-testid="username-input" />
+    </div>
+
+    <div class="row">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" placeholder="Password" data-testid="password-input" />
+    </div>
+
+    <div class="row">
+      <label><input type="checkbox" data-testid="newsletter" /> Subscribe to newsletter</label>
+    </div>
+
+    <div class="row">
+      <label><input type="radio" name="role" value="admin" checked /> Admin</label>
+      <label><input type="radio" name="role" value="user" /> User</label>
+      <label><input type="radio" name="role" value="guest" /> Guest</label>
+    </div>
+
+    <div class="row">
+      <label for="country">Country</label>
+      <select id="country" data-testid="country-select">
+        <option value="in">India</option>
+        <option value="us" selected>United States</option>
+        <option value="uk">United Kingdom</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="message">Message</label>
+      <textarea id="message" rows="4" data-testid="message-box">Hello Playwright</textarea>
+    </div>
+
+    <div class="row">
+      <button id="submit-btn" data-testid="submit-btn" type="button">Submit</button>
+      <button id="cancel-btn" type="button" disabled>Disabled Button</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Users</h2>
+    <table data-testid="user-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Alice</td><td>Admin</td><td><span class="badge">Active</span></td></tr>
+        <tr><td>Bob</td><td>User</td><td><span class="badge">Pending</span></td></tr>
+        <tr><td>Charlie</td><td>Guest</td><td><span class="badge">Inactive</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>List</h2>
+    <ul data-testid="menu-list">
+      <li>Home</li>
+      <li>Profile</li>
+      <li>Settings</li>
+      <li>Logout</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Hidden section</h2>
+    <div id="success-banner" class="hidden" data-testid="success-banner">Success! Form submitted.</div>
+  </div>
+
+  <div class="card">
+    <h2>Modal</h2>
+    <button id="open-modal" data-testid="open-modal">Open modal</button>
+    <div id="modal" class="hidden" aria-label="Example modal" data-testid="modal-dialog">
+      <h3>Modal Title</h3>
+      <p>This is a sample modal content.</p>
+      <button id="close-modal" data-testid="close-modal">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('modal');
+    const openModalBtn = document.getElementById('open-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+    const submitBtn = document.getElementById('submit-btn');
+    const banner = document.getElementById('success-banner');
+
+    openModalBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    submitBtn.addEventListener('click', () => {
+      banner.classList.remove('hidden');
+      banner.textContent = 'Success! Form submitted.';
+    });
+  </script>
+</body>
+</html>

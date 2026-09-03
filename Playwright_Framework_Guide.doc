@@ -1,0 +1,227 @@
+Playwright + Cucumber Java Framework Guide
+
+Project: PlaywrightJava
+Location: c:\Users\arunn\eclipse-workspace\PlaywrightJava
+
+1. Overview
+This document explains the framework built in this project: how tests are organized, which Playwright APIs and locator types were used, how Cucumber integrates (features/steps/runner), what was automated in Maven to prepare Playwright, and specifics of each method used in the sample step implementations. It also lists troubleshooting tips and how to run tests locally.
+
+2. Project structure (relevant paths)
+- pom.xml — Maven build file with dependencies and exec plugin to prepare Playwright binaries
+- src/test/resources/features/*.feature — Cucumber feature files (sample.feature, dummy-browser.feature)
+- src/test/java/steps/*.java — Cucumber step definitions that exercise Playwright
+  - SampleSteps.java — example using Playwright to open example.com (with Jsoup fallback)
+  - DummyBrowserSteps.java — uses the dummy-browser.html to exercise a variety of locators
+- src/test/java/runner/RunCucumberJUnit4Test.java — JUnit4 test runner annotated with @RunWith(Cucumber.class)
+- src/test/resources/pages/dummy-browser.html — local practice page with inputs, table, list, modal, hidden banner
+- src/test/resources/pages/example.html — local fallback example page
+- src/test/resources/cucumber.properties — cucumber configuration (features, glue, plugins)
+
+3. How tests run (high level)
+- mvn test triggers Maven lifecycle: generate-test-resources -> test-compile -> test.
+- exec-maven-plugin is configured in generate-test-resources phase to ensure Node package exists, install @playwright/test and run npx playwright install --with-deps (this downloads browser binaries).
+- JUnit4 picks up the runner class RunCucumberJUnit4Test which uses Cucumber to run .feature scenarios.
+- Steps use Playwright Java API to create a browser, open pages, and interact. After each scenario, resources are cleaned up in @After hooks.
+
+4. Cucumber integration
+- Features: Written in Gherkin and placed under src/test/resources/features. Example: dummy-browser.feature.
+- Glue: step definitions are in package steps. cucumber.properties sets cucumber.glue=steps and cucumber.features=classpath:features.
+- Runner: RunCucumberJUnit4Test.java is a small JUnit4 runner with @RunWith(Cucumber.class) and @CucumberOptions to point to features, glue and reporting plugins.
+
+5. Dummy page (practice harness)
+- src/test/resources/pages/dummy-browser.html includes: text input (username), password, textarea (message), checkbox (newsletter), radio buttons (role), select (country), buttons (submit/open modal), table (users), list (menu), hidden banner and modal.
+- Each element has attributes useful for testing: id, data-testid, labels and text content.
+
+6. Locators used (detailed) — with examples from the code
+Playwright supports many locator strategies. The step implementations demonstrate the following:
+
+- getByLabel("LabelText")
+  Use when an input is associated with a <label>. Example:
+    page.getByLabel("Username").fill("playwright-user");
+  This finds the form control matching the visible label text.
+
+- getByTestId("testid")
+  When your HTML includes data-testid attributes for stable test targeting:
+    page.getByTestId("username-input").inputValue();
+
+- getByRole(AriaRole.BUTTON/AriaRole.RADIO, new Page.GetByRoleOptions().setName("Name"))
+  Semantic queries by ARIA role and accessible name. Example clicking a button:
+    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Submit")).click();
+  Great for accessibility-friendly selectors.
+
+- CSS selectors via locator("css")
+  Generic CSS targeting (IDs, attributes, nested structures):
+    page.locator("#password").fill("secret");
+    page.locator("[data-testid='country-select']").selectOption("uk");
+    page.locator("table tbody tr").count();
+
+- locator().nth(index)
+  Pick a specific element from a collection:
+    page.locator("li").nth(2).textContent();
+
+- allTextContents() and textContent()
+  Get visible text of a list/element:
+    page.locator("[data-testid='menu-list'] li").allTextContents().contains("Profile");
+
+- isVisible() and isHidden()
+  Check visibility state of UI (used for modal and banner checks):
+    page.getByTestId("modal-dialog").isVisible();
+    page.getByTestId("modal-dialog").isHidden();
+
+- check() for checkboxes/radios and selectOption() for selects
+    page.getByTestId("newsletter").check();
+    page.locator("[data-testid='country-select']").selectOption("uk");
+
+7. Playwright concepts explained
+- Playwright vs browser engines: Playwright is a Java API that drives browser engine processes (Chromium, Firefox, WebKit) via a bundled Node helper. The Java client starts a Node-based driver behind the scenes to control browsers.
+
+- Playwright object: entry point in Java. Created by Playwright.create(). Holds references to browser types.
+  - Playwright playwright = Playwright.create();
+  - BrowserType chromium = playwright.chromium();
+
+- BrowserType and Browser: launch() on a BrowserType (chromium, firefox, webkit) starts a browser process.
+  - Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+
+- BrowserContext (not explicitly created in these samples): an isolated browser profile. Use browser.newContext() to create separate contexts for parallel tests (cookies/storage isolation).
+
+- Page: like a tab. Created with browser.newPage() or context.newPage(). You call page.navigate / page.goto / page.click etc. to interact.
+
+- Locator: Playwright’s main API for interacting with elements. Methods are lazy and auto-waiting: they wait for elements to be actionable.
+  - page.locator(selector) returns a Locator, which supports click(), fill(), isVisible(), etc.
+
+- Auto-waiting: Playwright retries actions until the element is ready or a timeout occurs — reduces flakiness compared to raw sleeps.
+
+- Selectors: Playwright supports CSS, text selectors, role selectors, test id selectors and custom selector engines.
+
+- Tracing, recording, HAR, and debugging: Playwright can record traces and network HARs to analyze test runs.
+
+- Headless vs headful: headless runs without UI, headful shows the browser window. For debugging, set headless=false.
+
+- Playwright Java uses a node helper under the hood. Therefore, the Node environment (npx, package.json, and installed playwright-core) and downloaded browser binaries are required for full functionality.
+
+8. Playwright methods used in this project (what they do)
+- Playwright.create()
+  - Starts Playwright Java runtime. Initializes resources needed to launch browsers.
+
+- playwright.chromium()/playwright.firefox()/playwright.webkit()
+  - Access to browser engine types.
+
+- BrowserType.launch(LaunchOptions)
+  - Starts a browser process. Common options:
+    .setHeadless(true|false)
+    .setSlowMo(milliseconds) — slow down actions for debugging
+
+- browser.newPage()
+  - Opens a new page/tab.
+
+- page.navigate(url) or page.goto(url)
+  - Navigates page to the URL. Use file:// path for local HTML files.
+
+- page.getByLabel(string)
+  - Query an input by its associated label text.
+
+- page.getByTestId(string)
+  - Query element with data-testid attribute.
+
+- page.getByRole(AriaRole, options)
+  - Query element by ARIA role (button, radio, checkbox) and accessible name.
+
+- page.locator(selector)
+  - Create a Locator using a CSS (or selector engine) string. Supports chaining and collection operations (nth, first, last).
+
+- locator.fill(value)
+  - Set value of an input/textarea.
+
+- locator.inputValue()
+  - Read the current value of an input element.
+
+- locator.check()/locator.uncheck()
+  - Check or uncheck checkboxes/radios.
+
+- locator.selectOption(value)
+  - Select option in a select element. Can pass value or label.
+
+- locator.click()
+  - Click an element. Locator auto-waits until clickable.
+
+- locator.count()
+  - Return number of matching elements.
+
+- locator.allTextContents()
+  - Get list of visible text for matching elements.
+
+- locator.isVisible()/isHidden()
+  - Check visibility state of element.
+
+- locator.textContent()/locator.innerText()
+  - Get textual content — innerText differs in whitespace handling.
+
+- page.content()
+  - Get the full HTML content of the current page (useful for fallback parsing with Jsoup).
+
+- page.title()
+  - Get document title.
+
+- browser.close()/page.close()/playwright.close()
+  - Close resources in reverse order.
+
+9. Playwright + Maven automation notes
+- The project adds an exec-maven-plugin block to ensure Node/npm environment has @playwright/test and to run npx playwright install --with-deps to download browser binaries.
+- On CI or developer machines, it’s often better to run npm install and npx playwright install manually once (or cache the ms-playwright folder) to avoid repeated downloads.
+- On Windows, the Playwright installer reports missing native system DLLs if host OS is missing optional libraries. Those are host-specific and must be resolved by installing the appropriate runtime dependencies.
+
+10. Fallbacks and resilience added
+- SampleSteps.java: added a Jsoup fallback path: if Playwright cannot start or page content retrieval fails, the step loads a local static HTML page (src/test/resources/pages/example.html) and performs the same checks with Jsoup to allow the automated test run to continue in constrained environments.
+- DummyBrowserSteps uses only Playwright but will throw useful assertion errors if a condition fails.
+
+11. How to run the tests locally (recommended)
+Pre-requisites:
+- Java 11+ and Maven installed
+- Node.js and npm installed (required by Playwright Java to prepare node helper and browsers)
+
+Steps:
+1. From project root, install Node packages (if not using Maven automation):
+   npm init -y
+   npm i -D @playwright/test
+   npx playwright install --with-deps
+   (This ensures the node helper and browser binaries are available.)
+
+2. Run tests:
+   mvn test
+   or run a single runner:
+   mvn -Dtest=RunCucumberJUnit4Test test
+
+Notes:
+- If you see Node errors referencing missing package.json or MODULE_NOT_FOUND for package.json, run the npm init/install steps above.
+- The exec-maven-plugin tries to automate npm init and npm install, but running installation manually gives clearer control.
+
+12. Troubleshooting
+- Error: Cannot find module './../../package.json'
+  - Solution: ensure package.json exists and @playwright/test (or playwright-core) is installed under project node_modules. Running npm install @playwright/test resolves this.
+
+- Playwright Host validation missing libraries (icutu77.dll, psl-5.dll)
+  - These are OS-level dependencies (Windows). Install the required redistributables or required GTK/system libs for Linux containers. On Windows, ensuring the system has up-to-date Visual C++ redistributables and supporting libs may help.
+
+- Tests hang or fail due to missing browsers
+  - Run npx playwright install and verify ms-playwright folder under user profile has browser executables.
+
+13. Summary of methods & locators used (quick reference)
+- getByLabel("text") — label-based input selector
+- getByTestId("id") — data-testid attribute
+- getByRole(AriaRole.BUTTON/ARIA..., new Page.GetByRoleOptions().setName("Name"))
+- locator("css") — CSS selectors
+- locator(...).nth(i), .count(), .allTextContents()
+- fill(), inputValue(), selectOption(), check(), click(), isVisible(), isHidden(), textContent(), innerText(), content(), title()
+- Playwright.create(), playwright.chromium().launch(), browser.newPage(), page.navigate(), page.close(), browser.close(), playwright.close()
+
+14. Next steps and enhancements (suggestions)
+- Add Page Object Model wrappers around locators to keep steps concise and reusable.
+- Add BrowserContext creation to isolate tests and enable parallel execution.
+- Add tests for advanced interactions (frames, drag/drop, keyboard, downloads/uploads).
+- Add CI caching for ms-playwright folder and node_modules to speed up runs.
+- Add screenshots and trace collection on failures to help debugging.
+
+15. Contact / Notes
+- The framework is intentionally minimal but demonstrates Playwright + Cucumber integration, many locator types, and a practical fallback to Jsoup to maintain testability on constrained hosts.
+
+End of document.
